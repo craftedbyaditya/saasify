@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:saasify_lite/constants/strings.dart';
 import 'package:saasify_lite/constants/theme.dart';
 import 'package:saasify_lite/gServices/g_sheet_services.dart';
@@ -11,7 +12,8 @@ import 'package:saasify_lite/screens/pos/pos_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GSheetsService.init();
+  await dotenv.load();
+
 
   runApp(const MyApp());
 }
