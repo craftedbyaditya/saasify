@@ -7,19 +7,15 @@ class PosBloc {
     try {
       final response = await supabase.from('items').select();
 
-      if (response is List) {
-        return response.map((product) {
-          return {
-            'name': product['name'] ?? '',
-            'description': product['description'] ?? '',
-            'amount': product['price'] ?? 0.0,
-            'quantity': 0,
-          };
-        }).toList();
-      } else {
-        throw Exception('Failed to fetch products');
-      }
-    } catch (e) {
+      return response.map((product) {
+        return {
+          'name': product['name'] ?? '',
+          'description': product['description'] ?? '',
+          'amount': product['price'] ?? 0.0,
+          'quantity': 0,
+        };
+      }).toList();
+        } catch (e) {
       print('❗ Error fetching products: $e');
       return [];
     }
