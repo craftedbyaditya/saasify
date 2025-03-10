@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:gsheets/gsheets.dart';
 import 'package:saasify_lite/gServices/g_sheet_config.dart';
 
 class GSheetsService {
-  static final GSheets _gsheets = GSheets(GSheetsConfig.credentials);
+  static final GSheets _gsheets = GSheets(
+    jsonEncode(GSheetsConfig.credentials),
+  );
   static Worksheet? userSheet;
   static Worksheet? customerSheet;
   static Worksheet? itemSheet;

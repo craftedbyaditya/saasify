@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:saasify_lite/constants/strings.dart';
 import 'package:saasify_lite/constants/theme.dart';
@@ -10,10 +13,11 @@ import 'package:saasify_lite/screens/pos/checkout_screen.dart';
 import 'package:saasify_lite/screens/pos/payment_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';
 
+import 'gServices/g_sheet_config.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
-
+  await GSheetsConfig.loadConfig();
 
   runApp(const MyApp());
 }
