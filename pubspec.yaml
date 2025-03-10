@@ -45,6 +45,7 @@ dependencies:
   flutter_dotenv:
   cupertino_icons: ^1.0.8
   googleapis_auth: ^1.0.0
+  supabase_flutter:
   shared_preferences: ^2.2.2
 
 dev_dependencies:
