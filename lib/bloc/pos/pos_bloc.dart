@@ -1,19 +1,27 @@
-import 'package:saasify_lite/gServices/g_sheet_services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PosBloc {
   Future<List<Map<String, dynamic>>> fetchProducts() async {
-    if (!GSheetsService.isInitialized) {
-      await GSheetsService.init();
-    }
+    final supabase = Supabase.instance.client;
 
-    final products = await GSheetsService.itemSheet!.values.allRows();
-    return products.skip(1).map((row) {
-      return {
-        'name': row[1],
-        'description': row[2],
-        'amount': double.tryParse(row[3]) ?? 0.0,
-        'quantity': 0,
-      };
-    }).toList();
+    try {
+      final response = await supabase.from('items').select();
+
+      if (response is List) {
+        return response.map((product) {
+          return {
+            'name': product['name'] ?? '',
+            'description': product['description'] ?? '',
+            'amount': product['price'] ?? 0.0,
+            'quantity': 0,
+          };
+        }).toList();
+      } else {
+        throw Exception('Failed to fetch products');
+      }
+    } catch (e) {
+      print('❗ Error fetching products: $e');
+      return [];
+    }
   }
 }
