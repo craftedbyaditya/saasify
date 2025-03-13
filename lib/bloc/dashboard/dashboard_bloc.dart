@@ -29,7 +29,7 @@ class DashboardService {
       // Fetch all orders for the logged-in user
       final ordersResponse = await _supabase
           .from('order_history')
-          .select('total_amount, paid_amount, payment_status')
+          .select('total_amount, balance_amount')
           .eq('user_id', userId);
 
       double totalAmount = 0;
@@ -37,15 +37,8 @@ class DashboardService {
       int totalOrders = ordersResponse.length;
 
       for (var order in ordersResponse) {
-        double orderTotal = (order['total_amount'] as num?)?.toDouble() ?? 0.0;
-        double paidAmount = (order['paid_amount'] as num?)?.toDouble() ?? 0.0;
-        String status = order['payment_status'] ?? '';
-
-        totalAmount += orderTotal;
-
-        if (status == 'pending' || status == 'partial') {
-          pendingAmount += orderTotal - paidAmount;
-        }
+        totalAmount += (order['total_amount'] as num?)?.toDouble() ?? 0.0;
+        pendingAmount += (order['balance_amount'] as num?)?.toDouble() ?? 0.0;
       }
 
       // Fetch total customers count
