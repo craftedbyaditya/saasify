@@ -4,6 +4,7 @@ import 'package:saasify_lite/screens/inventory/add_new_item.dart';
 import 'package:saasify_lite/screens/orders/order_history_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';
 import 'package:saasify_lite/screens/customers/all_customers_screen.dart';
+import 'package:saasify_lite/screens/profile/profile_screen.dart';
 import '../../bloc/dashboard/dashboard_bloc.dart';
 import '../../constants/dimensions.dart';
 
@@ -106,183 +107,198 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.notifications_none_rounded,
+              Icons.refresh_rounded,
               color: Colors.black87,
               size: 28,
             ),
-            onPressed: () {},
+            onPressed: () => _loadStats(),
           ),
           const SizedBox(width: 8),
-          CircleAvatar(
-            backgroundColor: const Color(0xFF006d77).withOpacity(0.1),
-            child: const Icon(
-              Icons.person_outline_rounded,
-              color: Color(0xFF006d77),
+          InkWell(
+            onTap: () => _navigateTo(const ProfileScreen()),
+            child: CircleAvatar(
+              backgroundColor: const Color(0xFF006d77).withOpacity(0.1),
+              child: const Icon(
+                Icons.person_outline_rounded,
+                color: Color(0xFF006d77),
+              ),
             ),
           ),
           const SizedBox(width: 16),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              // Stats Section
-              Padding(
-                padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Statistics',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                'Total Sales',
-                                _isLoading
-                                    ? '...'
-                                    : '₹${_stats?.totalAmount.toStringAsFixed(2) ?? '0.00'}',
-                                Icons.trending_up_rounded,
-                                const Color(0xFF006d77),
-                                {'screen': null},
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                'Total Orders',
-                                _isLoading
-                                    ? '...'
-                                    : '${_stats?.totalOrders ?? 0}',
-                                Icons.shopping_bag_outlined,
-                                const Color(0xFFe29578),
-                                {'screen': const OrderHistoryScreen()},
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                'Pending Amount',
-                                _isLoading
-                                    ? '...'
-                                    : '₹${_stats?.pendingAmount.toStringAsFixed(2) ?? '0.00'}',
-                                Icons.pending_actions_rounded,
-                                const Color(0xFF2a9d8f),
-                                {'screen': ''},
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                'Total Customers',
-                                _isLoading
-                                    ? '...'
-                                    : '${_stats?.totalCustomers ?? 0}',
-                                Icons.people_alt_rounded,
-                                const Color(0xFF264653),
-                                {'screen': const AllCustomersScreen()},
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.paddingLarge,
-                ),
-                child: const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-              GridView.builder(
-                padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.1,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: _tiles.length,
-                itemBuilder: (context, index) {
-                  final tile = _tiles[index];
-                  return InkWell(
-                    onTap: () => _navigateTo(tile['screen']),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                          width: 1,
+      body: RefreshIndicator(
+        color: Theme.of(context).primaryColor,
+        onRefresh: () async {
+          setState(() {
+            _isLoading = true;
+          });
+          await _dashboardService.getStats();
+          setState(() {
+            _isLoading = false;
+          });
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                // Stats Section
+                Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Statistics',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      const SizedBox(height: 16),
+                      Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: tile['color'].withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              tile['icon'],
-                              size: 32,
-                              color: tile['color'],
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  'Total Sales',
+                                  _isLoading
+                                      ? '...'
+                                      : '₹${_stats?.totalAmount.toStringAsFixed(2) ?? '0.00'}',
+                                  Icons.trending_up_rounded,
+                                  const Color(0xFF006d77),
+                                  {'screen': null},
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildStatCard(
+                                  'Total Orders',
+                                  _isLoading
+                                      ? '...'
+                                      : '${_stats?.totalOrders ?? 0}',
+                                  Icons.shopping_bag_outlined,
+                                  const Color(0xFFe29578),
+                                  {'screen': const OrderHistoryScreen()},
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            tile['text'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            tile['description'],
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  'Pending Amount',
+                                  _isLoading
+                                      ? '...'
+                                      : '₹${_stats?.pendingAmount.toStringAsFixed(2) ?? '0.00'}',
+                                  Icons.pending_actions_rounded,
+                                  const Color(0xFF2a9d8f),
+                                  {'screen': ''},
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildStatCard(
+                                  'Total Customers',
+                                  _isLoading
+                                      ? '...'
+                                      : '${_stats?.totalCustomers ?? 0}',
+                                  Icons.people_alt_rounded,
+                                  const Color(0xFF264653),
+                                  {'screen': const AllCustomersScreen()},
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.paddingLarge,
+                  ),
+                  child: const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
-                  );
-                },
-              ),
-            ],
+                  ),
+                ),
+                GridView.builder(
+                  padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.1,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: _tiles.length,
+                  itemBuilder: (context, index) {
+                    final tile = _tiles[index];
+                    return InkWell(
+                      onTap: () => _navigateTo(tile['screen']),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: tile['color'].withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                tile['icon'],
+                                size: 32,
+                                color: tile['color'],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              tile['text'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              tile['description'],
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

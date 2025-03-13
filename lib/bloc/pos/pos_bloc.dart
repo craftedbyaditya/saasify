@@ -25,6 +25,7 @@ class PosBloc {
           'description': product['description'] ?? '',
           'amount': product['price'] ?? 0.0,
           'quantity': 0,
+          'product_image': product['product_image'] ?? '',
         };
       }).toList();
     } catch (e) {

@@ -256,11 +256,20 @@ class _PosScreenState extends State<PosScreen> {
                                     ),
                                   ),
                                   alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.inventory_2_outlined,
-                                    size: 40,
-                                    color: Colors.grey[400],
-                                  ),
+                                  child:
+                                      (_filteredProducts[index]['product_image'] !=
+                                              null)
+                                          ? Image.network(
+                                            product['product_image'],
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            fit: BoxFit.cover,
+                                          )
+                                          : Icon(
+                                            Icons.inventory_2_outlined,
+                                            size: 40,
+                                            color: Colors.grey[400],
+                                          ),
                                 ),
                               ),
                               Padding(
@@ -280,6 +289,13 @@ class _PosScreenState extends State<PosScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
+                                    Text(
+                                      product['description'],
+                                      style: const TextStyle(fontSize: 13.0),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
                                     Text(
                                       '₹${product['amount']}',
                                       style: TextStyle(
@@ -341,6 +357,8 @@ class _PosScreenState extends State<PosScreen> {
                       },
                     ),
           ),
+          const SizedBox(height: AppDimensions.paddingLarge),
+          const SizedBox(height: AppDimensions.paddingMedium),
         ],
       ),
     );

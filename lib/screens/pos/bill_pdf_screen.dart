@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BillPdfGenerator {
   Future<File> generateBill({
@@ -24,6 +25,10 @@ class BillPdfGenerator {
 
     final balanceAmount = totalAmount - paidAmount;
 
+    final businessDetails = await _getBusinessDetails();
+    final businessName = businessDetails['businessName']?.trim();
+    final contactNumber = businessDetails['phone']?.trim();
+
     pdf.addPage(
       pw.Page(
         build:
@@ -31,13 +36,14 @@ class BillPdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 // Business Name & Contact
-                pw.Text(
-                  'BUSINESS NAME',
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
+                if (businessName?.isNotEmpty ?? false)
+                  pw.Text(
+                    businessName!,
+                    style: pw.TextStyle(
+                      fontSize: 20,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
-                ),
                 pw.SizedBox(height: 15),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -186,16 +192,21 @@ class BillPdfGenerator {
                     children: [
                       pw.SizedBox(height: 20),
 
+                      if (contactNumber?.isNotEmpty ?? false)
+                        pw.Text(
+                          'Contact Us : $contactNumber',
+                          textAlign: pw.TextAlign.center,
+                          style: pw.TextStyle(fontSize: 10),
+                        ),
+                      pw.SizedBox(height: 5),
                       pw.Text(
                         'Thank You For Supporting Our Business!',
                         textAlign: pw.TextAlign.center,
                         style: pw.TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.SizedBox(height: 5),
-                      pw.Text('Contact Us : +91 8329197228'),
                       pw.SizedBox(height: 20),
                     ],
                   ),
@@ -212,6 +223,14 @@ class BillPdfGenerator {
 
     await file.writeAsBytes(await pdf.save());
     return file;
+  }
+
+  Future<Map<String, String>> _getBusinessDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'businessName': prefs.getString('businessName') ?? '',
+      'phone': prefs.getString('userPhone') ?? '',
+    };
   }
 
   // Helper function to create formatted rows
