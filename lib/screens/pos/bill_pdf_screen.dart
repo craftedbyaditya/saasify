@@ -146,12 +146,12 @@ class BillPdfGenerator {
                     children: [
                       _buildSummaryRow(
                         'Subtotal:',
-                        '${subtotalAmount.toStringAsFixed(2)}',
+                        subtotalAmount.toStringAsFixed(2),
                       ),
                       if (discountAmount > 0) ...[
                         _buildSummaryRow(
                           'Discount (${discountPercent.toStringAsFixed(1)}%):',
-                          '${discountAmount.toStringAsFixed(2)}',
+                          discountAmount.toStringAsFixed(2),
                         ),
                       ],
                       pw.Container(
@@ -160,7 +160,7 @@ class BillPdfGenerator {
                       ),
                       _buildSummaryRow(
                         'Total Amount:',
-                        '${totalAmount.toStringAsFixed(2)}',
+                        totalAmount.toStringAsFixed(2),
                         isBold: true,
                       ),
                       if (paymentOption == 'Partial Payment' ||

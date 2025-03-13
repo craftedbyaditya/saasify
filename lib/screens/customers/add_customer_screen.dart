@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:saasify_lite/bloc/customer/customer_bloc.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 import 'package:saasify_lite/constants/dimensions.dart';

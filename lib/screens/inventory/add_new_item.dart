@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:saasify_lite/widgets/custom_button.dart';
-import 'package:saasify_lite/widgets/custom_popup.dart';
 import '../../bloc/inventory/add_item_bloc.dart';
 import '../../constants/dimensions.dart';
 import '../../widgets/custom_textfield.dart';

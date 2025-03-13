@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../constants/dimensions.dart';
 import '../../widgets/custom_textfield.dart';
+import '../../bloc/orderHistory/order_history.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -13,7 +14,7 @@ class OrderHistoryScreen extends StatefulWidget {
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final OrderService _orderService = OrderService();
   List<Map<String, dynamic>> _orders = [];
   bool _isLoading = true;
   final _currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
@@ -26,13 +27,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Future<void> _loadOrders() async {
     try {
-      final response = await _supabase
-          .from('order_history')
-          .select('*, customers(name)')
-          .order('order_date', ascending: false);
-
+      final orders = await _orderService.loadOrders();
       setState(() {
-        _orders = response;
+        _orders = orders;
         _isLoading = false;
       });
     } catch (e) {
@@ -50,14 +47,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       _isLoading = true;
     });
 
-    _supabase
-        .from('order_history')
-        .select('*, customers(name)')
-        .ilike('customers.name', '%$query%')
-        .order('order_date', ascending: false)
-        .then((response) {
+    _orderService
+        .filterOrders(query)
+        .then((orders) {
           setState(() {
-            _orders = response;
+            _orders = orders;
             _isLoading = false;
           });
         })
