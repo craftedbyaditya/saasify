@@ -31,16 +31,17 @@ class AddCustomerService {
         });
       }
 
-      // Check if the mobile number already exists
+      // Check if the mobile number already exists for this specific user
       final existingCustomer =
           await supabase
               .from('customers')
               .select('id')
               .eq('mobile', userContact)
+              .eq('user_id', currentUser.id)
               .maybeSingle();
 
       if (existingCustomer != null) {
-        throw Exception('A customer with this mobile number already exists');
+        throw Exception('You already have a customer with this mobile number');
       }
 
       // Now add the customer
@@ -52,14 +53,11 @@ class AddCustomerService {
         'created_at': DateTime.now().toIso8601String(),
         'user_id': currentUser.id,
       });
-    } on PostgrestException catch (e) {
-      if (e.code == '23505') {
-        // Unique constraint violation
-        throw Exception('A customer with this mobile number already exists');
-      }
-      throw Exception('Database error: ${e.message}');
     } catch (e) {
-      throw Exception('Failed to add customer: ${e.toString()}');
+      if (e is PostgrestException) {
+        throw Exception('Database error occurred. Please try again.');
+      }
+      throw e; // Re-throw the original exception if it's our custom one
     }
   }
 

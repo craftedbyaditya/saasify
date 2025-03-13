@@ -3,6 +3,7 @@ import 'package:saasify_lite/screens/customers/add_customer_screen.dart';
 import 'package:saasify_lite/screens/inventory/add_new_item.dart';
 import 'package:saasify_lite/screens/orders/order_history_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';
+import 'package:saasify_lite/screens/customers/all_customers_screen.dart';
 import '../../bloc/dashboard/dashboard_bloc.dart';
 import '../../constants/dimensions.dart';
 
@@ -16,6 +17,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardService _dashboardService = DashboardService();
   DashboardStats? _stats;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -24,10 +26,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadStats() async {
-    final stats = await _dashboardService.getStats();
+    if (!mounted) return;
+
     setState(() {
-      _stats = stats;
+      _isLoading = true;
     });
+
+    try {
+      final stats = await _dashboardService.getStats();
+      if (!mounted) return;
+
+      setState(() {
+        _stats = stats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error loading dashboard stats')),
+      );
+    }
   }
 
   final List<Map<String, dynamic>> _tiles = [
@@ -45,20 +68,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'screen': AddNewItemScreen(),
       'color': const Color(0xFF83c5be),
     },
-    {
-      'icon': Icons.people_alt_rounded,
-      'text': 'Add Customer',
-      'description': 'Add a new customer',
-      'screen': AddCustomerScreen(),
-      'color': const Color(0xFFe29578),
-    },
-    {
-      'icon': Icons.history_rounded,
-      'text': 'Order History',
-      'description': 'View all past orders',
-      'screen': const OrderHistoryScreen(),
-      'color': const Color(0xFF2a9d8f),
-    },
+    // {
+    //   'icon': Icons.people_alt_rounded,
+    //   'text': 'Add Customer',
+    //   'description': 'Add a new customer',
+    //   'screen': AddCustomerScreen(),
+    //   'color': const Color(0xFFe29578),
+    // },
+    // {
+    //   'icon': Icons.history_rounded,
+    //   'text': 'Order History',
+    //   'description': 'View all past orders',
+    //   'screen': const OrderHistoryScreen(),
+    //   'color': const Color(0xFF2a9d8f),
+    // },
     // {
     //   'icon': Icons.group_rounded,
     //   'text': 'All Customers',
@@ -128,18 +151,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Total Sales',
-                                '₹${_stats?.totalAmount.toStringAsFixed(2) ?? '0.00'}',
+                                _isLoading
+                                    ? '...'
+                                    : '₹${_stats?.totalAmount.toStringAsFixed(2) ?? '0.00'}',
                                 Icons.trending_up_rounded,
                                 const Color(0xFF006d77),
+                                {'screen': null},
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildStatCard(
                                 'Total Orders',
-                                '${_stats?.totalOrders ?? 0}',
+                                _isLoading
+                                    ? '...'
+                                    : '${_stats?.totalOrders ?? 0}',
                                 Icons.shopping_bag_outlined,
                                 const Color(0xFFe29578),
+                                {'screen': const OrderHistoryScreen()},
                               ),
                             ),
                           ],
@@ -150,18 +179,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Pending Amount',
-                                '₹${_stats?.pendingAmount.toStringAsFixed(2) ?? '0.00'}',
+                                _isLoading
+                                    ? '...'
+                                    : '₹${_stats?.pendingAmount.toStringAsFixed(2) ?? '0.00'}',
                                 Icons.pending_actions_rounded,
                                 const Color(0xFF2a9d8f),
+                                {'screen': ''},
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildStatCard(
                                 'Total Customers',
-                                '${_stats?.totalCustomers ?? 0}',
+                                _isLoading
+                                    ? '...'
+                                    : '${_stats?.totalCustomers ?? 0}',
                                 Icons.people_alt_rounded,
                                 const Color(0xFF264653),
+                                {'screen': const AllCustomersScreen()},
                               ),
                             ),
                           ],
@@ -259,37 +294,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String value,
     IconData icon,
     Color color,
+    Map<String, dynamic>? tile,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+    return InkWell(
+      onTap:
+          tile != null && tile['screen'] != null && tile['screen'] is Widget
+              ? () => _navigateTo(tile['screen'])
+              : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:saasify_lite/screens/customers/add_customer_screen.dart';
 import '../../constants/dimensions.dart';
 import '../../widgets/custom_textfield.dart';
+import '../../bloc/customer/customer_bloc.dart';
 
 class AllCustomersScreen extends StatefulWidget {
   const AllCustomersScreen({super.key});
@@ -13,9 +14,10 @@ class AllCustomersScreen extends StatefulWidget {
 
 class _AllCustomersScreenState extends State<AllCustomersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final AddCustomerBloc _customerBloc = AddCustomerBloc();
   final _currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
   List<Map<String, dynamic>> _customers = [];
+  List<Map<String, dynamic>> _allCustomers = [];
   bool _isLoading = true;
 
   @override
@@ -26,61 +28,38 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
 
   Future<void> _loadCustomers() async {
     try {
-      final response = await _supabase
-          .from('customers')
-          .select('''
-            *,
-            order_history!customer_id(
-              total_amount,
-              balance_amount,
-              payment_status,
-              order_date
-            )
-          ''')
-          .order('name');
-
+      final customers = await _customerBloc.fetchAllCustomers();
       setState(() {
-        _customers = response;
+        _customers = customers;
+        _allCustomers = customers;
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error loading customers')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error loading customers')),
+        );
+      }
     }
   }
 
   void _filterCustomers(String query) {
     setState(() {
-      _isLoading = true;
+      if (query.isEmpty) {
+        _customers = _allCustomers;
+      } else {
+        _customers =
+            _allCustomers
+                .where(
+                  (customer) => customer['name']
+                      .toString()
+                      .toLowerCase()
+                      .contains(query.toLowerCase()),
+                )
+                .toList();
+      }
     });
-
-    _supabase
-        .from('customers')
-        .select('''
-          *,
-          order_history!customer_id(
-            total_amount,
-            balance_amount,
-            payment_status,
-            order_date
-          )
-        ''')
-        .ilike('name', '%$query%')
-        .then((response) {
-          print('response --- $response');
-          setState(() {
-            _customers = response;
-            _isLoading = false;
-          });
-        })
-        .catchError((_) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error filtering customers')),
-          );
-        });
   }
 
   @override
@@ -98,6 +77,19 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
           'All Customers',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddCustomerScreen(),
+                ),
+              );
+            },
+            child: const Text(' + Add new customer'),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -143,8 +135,9 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 4),
-                                Text(customer['phone'] ?? ''),
-                                if (customer['email'] != null) ...[
+                                Text(customer['contact'] ?? ''),
+                                if (customer['email'] != null &&
+                                    customer['email'].isNotEmpty) ...[
                                   const SizedBox(height: 2),
                                   Text(customer['email']),
                                 ],
