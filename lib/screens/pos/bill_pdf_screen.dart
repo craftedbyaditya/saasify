@@ -91,7 +91,7 @@ class BillPdfGenerator {
                   ],
                 ),
                 pw.Divider(),
-                // Product List
+                pw.SizedBox(height: 2),
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children:
@@ -126,19 +126,20 @@ class BillPdfGenerator {
                         );
                       }).toList(),
                 ),
-                pw.SizedBox(height: 5),
-                pw.Divider(),
+                pw.SizedBox(height: 2),
+                pw.Divider(borderStyle:pw.BorderStyle.dashed),
                 pw.SizedBox(height: 5),
                 _buildPriceRow('Discount: ', (totalAmount).toStringAsFixed(2)),
                 _buildPriceRow('Sub Total: ', (totalAmount).toStringAsFixed(2)),
                 _buildPriceRow('Tax: ', (totalAmount * 0).toStringAsFixed(2)),
-                pw.Divider(),
+                pw.Divider(borderStyle:pw.BorderStyle.dashed),
+
                 pw.SizedBox(height: 5),
                 pw.Container(
                   padding: const pw.EdgeInsets.symmetric(vertical: 5),
                   child: _buildPriceRow(
                     'TOTAL: ',
-                    (totalAmount + (totalAmount * 0.07)).toStringAsFixed(2),
+                    (totalAmount).toStringAsFixed(2),
                     isBold: true,
                   ),
                 ),

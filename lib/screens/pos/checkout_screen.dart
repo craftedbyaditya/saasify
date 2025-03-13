@@ -5,12 +5,12 @@ import 'package:saasify_lite/widgets/custom_button.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> selectedProducts;
+  final List<Map<String, dynamic>> checkoutData;
   final double totalAmount;
 
   const CheckoutScreen({
     super.key,
-    required this.selectedProducts,
+    required this.checkoutData,
     required this.totalAmount,
   });
 
@@ -124,13 +124,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             CustomElevatedButton(
               text: 'Proceed to Payment',
               onTap: () {
+                final discountPercent =
+                    double.tryParse(_discountController.text) ?? 0.0;
+
+                final updatedCheckoutData =
+                    widget.checkoutData.map((product) {
+                      return {
+                        ...product,
+                        'originalAmount':
+                            product['amount'] * product['quantity'],
+                        'discountedAmount':
+                            product['amount'] *
+                            product['quantity'] *
+                            (1 - discountPercent / 100),
+                        'discountPercent': discountPercent,
+                      };
+                    }).toList();
+
+                final totalDiscountedAmount = updatedCheckoutData.fold(
+                  0.0,
+                  (sum, item) =>
+                      sum + (item['discountedAmount'] as double? ?? 0.0),
+                );
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder:
                         (context) => PaymentScreen(
-                          selectedProducts: widget.selectedProducts,
-                          totalAmount: _discountedTotal,
+                          selectedProducts: updatedCheckoutData,
+                          totalAmount: totalDiscountedAmount,
+                          discountedAmount:
+                              widget.totalAmount - totalDiscountedAmount,
+                          finalAmountToBePaid: 00.00,
                         ),
                   ),
                 );
@@ -147,9 +173,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Expanded(
               child: ListView.separated(
                 separatorBuilder: (context, index) => const Divider(),
-                itemCount: widget.selectedProducts.length,
+                itemCount: widget.checkoutData.length,
                 itemBuilder: (context, index) {
-                  final product = widget.selectedProducts[index];
+                  final product = widget.checkoutData[index];
                   return ListTile(
                     title: Text(
                       product['name'],

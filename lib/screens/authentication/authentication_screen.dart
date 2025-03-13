@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:saasify_lite/constants/dimensions.dart';
+import 'package:saasify_lite/widgets/custom_appbar.dart';
 import 'package:saasify_lite/widgets/custom_button.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 
@@ -29,7 +30,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.white),
+      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.paddingMedium),
@@ -53,8 +54,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   CustomTextField(
                     label: 'Username',
                     controller: _usernameController,
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter your username' : null,
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? 'Please enter your username'
+                                : null,
                   ),
                 const SizedBox(height: 20),
 
@@ -89,24 +93,25 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
 
                 const SizedBox(height: AppDimensions.marginLarge),
+                const SizedBox(height: AppDimensions.marginMedium),
 
                 (_isLoading)
                     ? const Center(child: CircularProgressIndicator())
                     : CustomElevatedButton(
-                  text: widget.isSignUp ? 'Register' : 'Sign In',
-                  onTap: () => _authBloc.authenticate(
-                    email: _emailController.text.trim(),
-                    password: _passwordController.text.trim(),
-                    isSignUp: widget.isSignUp,
-                    context: context,
-                    usernameController: widget.isSignUp
-                        ? _usernameController
-                        : null,
-                    setLoading: _setLoading,
-                  ),
-                ),
+                      text: widget.isSignUp ? 'Register' : 'Sign In',
+                      onTap:
+                          () => _authBloc.authenticate(
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text.trim(),
+                            isSignUp: widget.isSignUp,
+                            context: context,
+                            usernameController:
+                                widget.isSignUp ? _usernameController : null,
+                            setLoading: _setLoading,
+                          ),
+                    ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.marginLarge),
 
                 Center(
                   child: GestureDetector(
@@ -114,16 +119,18 @@ class _AuthScreenState extends State<AuthScreen> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              AuthScreen(isSignUp: !widget.isSignUp),
+                          builder:
+                              (context) =>
+                                  AuthScreen(isSignUp: !widget.isSignUp),
                         ),
                       );
                     },
                     child: RichText(
                       text: TextSpan(
-                        text: widget.isSignUp
-                            ? "Already have an account? "
-                            : "Don't have an account? ",
+                        text:
+                            widget.isSignUp
+                                ? "Already have an account? "
+                                : "Don't have an account? ",
                         style: const TextStyle(color: Colors.black87),
                         children: [
                           TextSpan(

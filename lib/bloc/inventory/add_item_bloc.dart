@@ -1,7 +1,3 @@
-import 'package:intl/intl.dart';
-import 'package:saasify_lite/gServices/g_sheet_services.dart';
-import 'package:saasify_lite/utils/utils.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddItemService {
@@ -16,6 +12,7 @@ class AddItemService {
       'name': productName,
       'description': description,
       'price': double.parse(price),
+      'user_id': supabase.auth.currentUser?.id,
     });
 
     if (response is List && response.isEmpty) {

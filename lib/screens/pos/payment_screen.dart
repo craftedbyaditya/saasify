@@ -6,14 +6,20 @@ import 'package:saasify_lite/widgets/custom_button.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 import 'package:saasify_lite/constants/dimensions.dart';
 
+import '../../bloc/orderHistory/order_history.dart';
+
 class PaymentScreen extends StatefulWidget {
   final List<Map<String, dynamic>> selectedProducts;
   final double totalAmount;
+  final double discountedAmount;
+  final double finalAmountToBePaid;
 
   const PaymentScreen({
     super.key,
     required this.selectedProducts,
     required this.totalAmount,
+    required this.discountedAmount,
+    required this.finalAmountToBePaid
   });
 
   @override
@@ -26,6 +32,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _paidAmountController = TextEditingController();
   final AddCustomerBloc _addCustomerBloc = AddCustomerBloc();
+  final OrderService _orderService = OrderService();
+
   String _selectedPaymentOption = 'Pay later';
   double _paidAmount = 0.0;
   List<Map<String, dynamic>> _customers = [];
@@ -33,6 +41,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _isLoading = true;
   bool _showAllResults = false;
   bool _showCustomerList = false;
+  String? _selectedCustomerId;
 
   @override
   void initState() {
@@ -94,26 +103,60 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  Future<void> _generateAndOpenBill(BuildContext context) async {
-    final pdfGenerator = BillPdfGenerator();
-    final file = await pdfGenerator.generateBill(
-      selectedProducts: widget.selectedProducts,
-      totalAmount: widget.totalAmount,
-      customerName: _customerNameController.text,
-      customerContact: _mobileNumberController.text,
-      paymentOption: _selectedPaymentOption,
-      paidAmount: _paidAmount,
-    );
+  Future<bool> _generateAndOpenBill(BuildContext context) async {
+    try {
+      final bool isInserted = await _orderService.insertOrder(
+        customerId: _selectedCustomerId!,
+        selectedProducts: widget.selectedProducts,
+        totalAmount: widget.totalAmount,
+        paidAmount: _paidAmount,
+        subTotalAmount: 0,
+        taxAmount: 0,
+        discountAmount: widget.selectedProducts
+            .map((product) => product['discountedAmount'] as double? ?? 0.0)
+            .fold(0.0, (prev, element) => prev + element),
+        discountPercent:
+            widget.selectedProducts
+                .map((product) => product['discountPercent'] as double? ?? 0.0)
+                .fold(0.0, (prev, element) => prev + element) /
+            widget.selectedProducts.length,
+        balanceAmount: widget.totalAmount - _paidAmount,
+        paymentMethod: _selectedPaymentOption,
+        paymentStatus:_selectedPaymentOption.contains('Paid') ? 'Paid' : 'Pending'
+      );
 
-    if (await file.exists()) {
-      await OpenFile.open(
-        file.path,
-      ); // Ensure to import the `open_file` package
-    } else {
+      if (isInserted) {
+        final pdfGenerator = BillPdfGenerator();
+        final file = await pdfGenerator.generateBill(
+          selectedProducts: widget.selectedProducts,
+          totalAmount: widget.totalAmount,
+          customerName: _customerNameController.text,
+          customerContact: _mobileNumberController.text,
+          paymentOption: _selectedPaymentOption,
+          paidAmount:
+              (_selectedPaymentOption == 'Half payment')
+                  ? _paidAmount
+                  : widget.totalAmount,
+        );
+
+        if (await file.exists()) {
+          await OpenFile.open(file.path);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to generate bill.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not place an order')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to generate bill.')));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+    return false;
   }
 
   @override
@@ -157,7 +200,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         onTap: () {
                           _customerNameController.text = customer['name'];
                           _mobileNumberController.text = customer['contact'];
-                          setState(() => _showCustomerList = false);
+                          setState(() {
+                            _showCustomerList = false;
+                            _selectedCustomerId =
+                                customer['id']; // Store the customer ID
+                          });
                         },
                       );
                     },
@@ -209,8 +256,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: AppDimensions.paddingSmall),
 
-            if (_selectedPaymentOption == 'Half amount' ||
-                _selectedPaymentOption == 'Pay later') ...[
+            if (_selectedPaymentOption == 'Half amount' ) ...[
               const SizedBox(height: AppDimensions.paddingMedium),
               (_selectedPaymentOption == 'Half amount')
                   ? CustomTextField(
@@ -226,7 +272,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ],
             const SizedBox(height: AppDimensions.paddingMedium),
-            Text('Total Amount: ₹${(widget.totalAmount).toStringAsFixed(2)}'),
+            Text('Total Amount: ₹${(widget.finalAmountToBePaid).toStringAsFixed(2)}'),
             const SizedBox(height: AppDimensions.paddingMedium),
             CustomElevatedButton(
               text: 'Generate Bill',

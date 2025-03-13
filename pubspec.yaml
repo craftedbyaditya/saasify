@@ -42,6 +42,7 @@ dependencies:
   open_file: ^3.3.2
   googleapis: ^11.4.0
   path_provider:
+  draggable_home: ^1.0.5
   flutter_dotenv:
   cupertino_icons: ^1.0.8
   googleapis_auth: ^1.0.0

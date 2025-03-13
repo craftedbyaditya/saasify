@@ -1,7 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 class AddCustomerService {
   static Future<void> addItem({
     required String userName,
@@ -28,6 +26,7 @@ class AddCustomerService {
       'mobile': userContact,
       'address': '',
       'created_at': DateTime.now().toIso8601String(),
+      'user_id': supabase.auth.currentUser?.id,
     });
   }
 
