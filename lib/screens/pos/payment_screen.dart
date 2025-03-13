@@ -25,6 +25,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController _paidAmountController = TextEditingController();
   final AddCustomerBloc _addCustomerBloc = AddCustomerBloc();
   final OrderService _orderService = OrderService();
+  final FocusNode _searchFocusNode = FocusNode();
 
   String _selectedPaymentOption = 'Pay Later';
   double _paidAmount = 0.0;
@@ -66,6 +67,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _mobileNumberController.dispose();
     _searchController.dispose();
     _paidAmountController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -171,32 +173,118 @@ class _PaymentScreenState extends State<PaymentScreen> {
             children: [
               CustomTextField(
                 controller: _searchController,
+                focusNode: _searchFocusNode,
                 label: 'Search Customer',
                 suffixIconData: Icons.search,
+                onChanged: (value) {
+                  _filterCustomers();
+                  setState(() {
+                    if (value.isEmpty) {
+                      _showCustomerList = false;
+                    }
+                  });
+                },
               ),
               const SizedBox(height: AppDimensions.paddingMedium),
+              (_searchController.text.isNotEmpty)
+                  ? Text(
+                    'Selected Customer',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  )
+                  : const SizedBox.shrink(),
+              (_searchController.text.isNotEmpty)
+                  ? SizedBox(height: AppDimensions.paddingMedium)
+                  : const SizedBox.shrink(),
+              if (_selectedCustomerId != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF006d77).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFF006d77).withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline,
+                        color: Color(0xFF006d77),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _customerNameController.text,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Color(0xFF006d77),
+                              ),
+                            ),
+                            Text(
+                              _mobileNumberController.text,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Color(0xFF006d77)),
+                        onPressed: () {
+                          setState(() {
+                            _selectedCustomerId = null;
+                            _customerNameController.clear();
+                            _mobileNumberController.clear();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.paddingMedium),
+              ],
 
               if (_showCustomerList)
                 Container(
-                  height: 200.0,
+                  constraints: const BoxConstraints(maxHeight: 200),
                   decoration: BoxDecoration(
+                    color: Colors.white,
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: Scrollbar(
-                    child: ListView.builder(
+                    child: ListView.separated(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
                       itemCount:
                           _showAllResults
                               ? _filteredCustomers.length
                               : (_filteredCustomers.length > 4
                                   ? 4
                                   : _filteredCustomers.length),
+                      separatorBuilder:
+                          (context, index) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final customer = _filteredCustomers[index];
                         return ListTile(
-                          title: Text(customer['name']),
+                          leading: const Icon(Icons.person_outline),
+                          title: Text(
+                            customer['name'],
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
                           subtitle: Text(customer['contact']),
                           onTap: () {
                             setState(() {
@@ -205,6 +293,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   customer['contact'];
                               _selectedCustomerId = customer['id'];
                               _showCustomerList = false;
+                              _searchController.clear();
+                              // Unfocus the search field and hide keyboard
+                              _searchFocusNode.unfocus();
                             });
                           },
                         );
@@ -221,9 +312,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               const SizedBox(height: AppDimensions.paddingMedium),
 
-              Text(
+              const Text(
                 'Payment Details',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppDimensions.paddingMedium),
 

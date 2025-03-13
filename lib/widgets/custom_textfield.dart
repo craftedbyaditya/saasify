@@ -20,6 +20,7 @@ class CustomTextField extends StatelessWidget {
   final InputDecoration? decoration;
   final TextStyle? style;
   final EdgeInsetsGeometry? contentPadding;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
@@ -41,6 +42,7 @@ class CustomTextField extends StatelessWidget {
     this.style,
     this.contentPadding,
     this.suffixIconData,
+    this.focusNode,
   });
 
   @override
@@ -56,6 +58,7 @@ class CustomTextField extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 10.0),
           child: TextFormField(
+            focusNode: focusNode,
             controller: controller,
             obscureText: obscureText,
             keyboardType: keyboardType,

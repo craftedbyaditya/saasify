@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: AppStrings.appName,
       theme: AppTheme.lightTheme,
       initialRoute: '/',
@@ -39,7 +40,9 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => DashboardScreen(),
         '/new-bill': (context) => PosScreen(),
         '/add-new-item': (context) => const AddNewItemScreen(),
-        '/checkout': (context) => const CheckoutScreen(checkoutData: [], totalAmount: 00.00),
+        '/checkout':
+            (context) =>
+                const CheckoutScreen(checkoutData: [], totalAmount: 00.00),
         '/add-customers': (context) => AddCustomerScreen(),
         // Define CustomersScreen
       },
