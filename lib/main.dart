@@ -6,7 +6,6 @@ import 'package:saasify_lite/screens/customers/add_customer_screen.dart';
 import 'package:saasify_lite/screens/dashboard/dashboard_screen.dart';
 import 'package:saasify_lite/screens/inventory/add_new_item.dart';
 import 'package:saasify_lite/screens/pos/checkout_screen.dart';
-import 'package:saasify_lite/screens/pos/payment_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -40,16 +39,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => DashboardScreen(),
         '/new-bill': (context) => PosScreen(),
         '/add-new-item': (context) => const AddNewItemScreen(),
-        '/payment':
-            (context) => const PaymentScreen(
-              selectedProducts: [],
-              totalAmount: 00.00,
-              discountedAmount: 00.00,
-              finalAmountToBePaid: 00.00,
-            ),
-        '/checkout':
-            (context) =>
-                const CheckoutScreen(checkoutData: [], totalAmount: 00.00),
+        '/checkout': (context) => const CheckoutScreen(checkoutData: [], totalAmount: 00.00),
         '/add-customers': (context) => AddCustomerScreen(),
         // Define CustomersScreen
       },

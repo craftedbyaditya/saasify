@@ -13,16 +13,29 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final List<Map<String, dynamic>> _tiles = [
-    {'icon': Icons.receipt, 'text': 'New Bill', 'screen': PosScreen()},
     {
-      'icon': Icons.add_box,
-      'text': 'Add New Item',
-      'screen': AddNewItemScreen(),
+      'icon': Icons.receipt_long,
+      'text': 'New Bill',
+      'description': 'Create a new bill for customer',
+      'screen': PosScreen(),
+      'color': const Color(0xFF006d77),
     },
-    // {'icon': Icons.history, 'text': 'Order History', 'screen': OrderHistoryScreen()},
-    // {'icon': Icons.inventory, 'text': 'Inventory', 'screen': InventoryScreen()},
-    {'icon': Icons.people, 'text': 'Customers', 'screen': AddCustomerScreen()},
+    {
+      'icon': Icons.add_box_rounded,
+      'text': 'Add New Item',
+      'description': 'Add new items to inventory',
+      'screen': AddNewItemScreen(),
+      'color': const Color(0xFF83c5be),
+    },
+    {
+      'icon': Icons.people_alt_rounded,
+      'text': 'Customers',
+      'description': 'Manage your customers',
+      'screen': AddCustomerScreen(),
+      'color': const Color(0xFFe29578),
+    },
   ];
+
   void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
@@ -30,56 +43,208 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-              child: GridView.count(
-                crossAxisCount: 2,
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.notifications_none_rounded,
+              color: Colors.black87,
+              size: 28,
+            ),
+            onPressed: () {},
+          ),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            backgroundColor: const Color(0xFF006d77).withOpacity(0.1),
+            child: const Icon(
+              Icons.person_outline_rounded,
+              color: Color(0xFF006d77),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingLarge,
+                ),
+                child: const Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GridView.builder(
+                padding: const EdgeInsets.all(AppDimensions.paddingLarge),
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                children: List.generate(_tiles.length, (index) {
-                  return Card(
-                    margin: const EdgeInsets.all(AppDimensions.marginSmall),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                      side: const BorderSide(color: Colors.grey, width: 0.5),
-                    ),
-                    elevation: 4.0,
-                    shadowColor: Colors.black.withOpacity(0.25),
-                    color: Colors.white,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12.0),
-                      onTap: () => _navigateTo(_tiles[index]['screen']),
-                      child: Padding(
-                        padding: const EdgeInsets.all(
-                          AppDimensions.paddingMedium,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _tiles[index]['icon'],
-                              size: 48.0,
-                              color: Color(0xFF006d77),
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.1,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: _tiles.length,
+                itemBuilder: (context, index) {
+                  final tile = _tiles[index];
+                  return InkWell(
+                    onTap: () => _navigateTo(tile['screen']),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: tile['color'].withOpacity(0.1),
+                              shape: BoxShape.circle,
                             ),
-                            const SizedBox(height: AppDimensions.paddingSmall),
-                            Text(
-                              _tiles[index]['text'],
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Icon(
+                              tile['icon'],
+                              size: 32,
+                              color: tile['color'],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            tile['text'],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            tile['description'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
-                }),
+                },
+              ),
+              // Stats Section
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Today\'s Stats',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _buildStatCard(
+                          'Total Sales',
+                          '₹24,500',
+                          Icons.trending_up_rounded,
+                          const Color(0xFF006d77),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildStatCard(
+                          'Orders',
+                          '12',
+                          Icons.shopping_bag_outlined,
+                          const Color(0xFFe29578),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

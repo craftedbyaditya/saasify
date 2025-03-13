@@ -3,6 +3,7 @@ import 'package:saasify_lite/constants/dimensions.dart';
 import 'package:saasify_lite/screens/pos/payment_screen.dart';
 import 'package:saasify_lite/widgets/custom_button.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
+import 'package:saasify_lite/widgets/custom_appbar.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<Map<String, dynamic>> checkoutData;
@@ -25,7 +26,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    _discountedTotal = widget.totalAmount; // Initially set to original total
+    _discountedTotal = widget.totalAmount;
     _discountController.addListener(_calculateDiscountedTotal);
   }
 
@@ -49,161 +50,279 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
-
-      bottomNavigationBar: Container(
-        height: MediaQuery.sizeOf(context).height * 0.25,
-        decoration: BoxDecoration(
-          color: Colors.white, // Primary color
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, -3), // Top shadow for lifted effect
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.only(
-          right: AppDimensions.paddingMedium,
-          left: AppDimensions.paddingMedium,
-          bottom: AppDimensions.paddingLarge,
-          top: AppDimensions.paddingMedium,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Order Summary',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total Price:', style: TextStyle(fontSize: 16)),
-                Text(
-                  '₹ ${widget.totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    decoration:
-                        (_discountController.text.isEmpty)
-                            ? TextDecoration.none
-                            : TextDecoration.lineThrough,
-                    fontSize: (_discountController.text.isEmpty) ? 18 : 12,
-                    fontWeight:
-                        (_discountController.text.isEmpty)
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+      backgroundColor: Colors.grey[50],
+      appBar: CustomAppBar(title: 'Checkout'),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+              itemCount: widget.checkoutData.length,
+              itemBuilder: (context, index) {
+                final product = widget.checkoutData[index];
+                return Container(
+                  margin: const EdgeInsets.only(
+                    bottom: AppDimensions.marginMedium,
                   ),
-                ),
-              ],
-            ),
-            (_discountController.text.isNotEmpty)
-                ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Discounted Price:',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      '₹ ${_discountedTotal.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                )
-                : SizedBox(),
-            SizedBox(height: AppDimensions.marginMedium),
-            CustomElevatedButton(
-              text: 'Proceed to Payment',
-              onTap: () {
-                final discountPercent =
-                    double.tryParse(_discountController.text) ?? 0.0;
-
-                final updatedCheckoutData =
-                    widget.checkoutData.map((product) {
-                      return {
-                        ...product,
-                        'originalAmount':
-                            product['amount'] * product['quantity'],
-                        'discountedAmount':
-                            product['amount'] *
-                            product['quantity'] *
-                            (1 - discountPercent / 100),
-                        'discountPercent': discountPercent,
-                      };
-                    }).toList();
-
-                final totalDiscountedAmount = updatedCheckoutData.fold(
-                  0.0,
-                  (sum, item) =>
-                      sum + (item['discountedAmount'] as double? ?? 0.0),
-                );
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => PaymentScreen(
-                          selectedProducts: updatedCheckoutData,
-                          totalAmount: totalDiscountedAmount,
-                          discountedAmount:
-                              widget.totalAmount - totalDiscountedAmount,
-                          finalAmountToBePaid: 00.00,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            color: Colors.grey[400],
+                            size: 24,
+                          ),
                         ),
+                        const SizedBox(width: AppDimensions.marginMedium),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product['name'],
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                product['description'],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'Qty: ${product['quantity']}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '₹${(product['amount'] * product['quantity']).toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF006d77),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
-          ],
-        ),
-      ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  offset: const Offset(0, -4),
+                  blurRadius: 16,
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                controller: _discountController,
+                                label: 'Discount (%)',
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                prefixIcon: const Icon(Icons.discount_outlined),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppDimensions.marginLarge),
+                        const Text(
+                          'Order Summary',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.marginMedium),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Subtotal',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              '₹${widget.totalAmount.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                decoration:
+                                    _discountController.text.isNotEmpty
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                color:
+                                    _discountController.text.isNotEmpty
+                                        ? Colors.grey[600]
+                                        : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_discountController.text.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Discount (${_discountController.text}%)',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                '-₹${(widget.totalAmount - _discountedTotal).toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(
+                            AppDimensions.paddingMedium,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF006d77).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Amount',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '₹${_discountedTotal.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF006d77),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.marginMedium),
+                        CustomElevatedButton(
+                          text: 'Proceed to Payment',
+                          onTap: () {
+                            final discountPercent =
+                                double.tryParse(_discountController.text) ??
+                                0.0;
 
-      body: Padding(
-        padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                separatorBuilder: (context, index) => const Divider(),
-                itemCount: widget.checkoutData.length,
-                itemBuilder: (context, index) {
-                  final product = widget.checkoutData[index];
-                  return ListTile(
-                    title: Text(
-                      product['name'],
-                      style: const TextStyle(fontSize: 16.0),
+                            final orderSummary = {
+                              'products':
+                                  widget.checkoutData
+                                      .map(
+                                        (product) => {
+                                          ...product,
+                                          'originalAmount':
+                                              product['amount'] *
+                                              product['quantity'],
+                                          'discountedAmount':
+                                              product['amount'] *
+                                              product['quantity'] *
+                                              (1 - discountPercent / 100),
+                                        },
+                                      )
+                                      .toList(),
+                              'subtotal': widget.totalAmount,
+                              'discountPercent': discountPercent,
+                              'discountAmount':
+                                  widget.totalAmount - _discountedTotal,
+                              'total': _discountedTotal,
+                              'timestamp': DateTime.now().toIso8601String(),
+                            };
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PaymentScreen(
+                                      orderSummary: orderSummary,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    subtitle: Text(
-                      '${product['description']}    |   Quantity : ${product['quantity']}',
-                    ),
-                    trailing: Text(
-                      '₹${(product['amount'] * product['quantity']).toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
-            Spacer(),
-            CustomTextField(
-              controller: _discountController,
-              label: 'Discount (%)',
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: AppDimensions.paddingMedium),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

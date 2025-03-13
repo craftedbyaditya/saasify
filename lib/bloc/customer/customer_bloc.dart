@@ -7,44 +7,93 @@ class AddCustomerService {
   }) async {
     final supabase = Supabase.instance.client;
 
-    // Check if the mobile number already exists
-    final existingCustomer =
-        await supabase
-            .from('customers')
-            .select('id')
-            .eq('mobile', userContact) // Change 'contact' to 'mobile'
-            .maybeSingle();
-
-    if (existingCustomer != null) {
-      throw Exception('Customer already exists');
+    // Check if user is authenticated
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
     }
 
-    await supabase.from('customers').insert({
-      'name': userName,
-      'email': '',
+    try {
+      // First check if the user exists in the users table
+      final userExists =
+          await supabase
+              .from('users')
+              .select('id')
+              .eq('id', currentUser.id)
+              .maybeSingle();
 
-      'mobile': userContact,
-      'address': '',
-      'created_at': DateTime.now().toIso8601String(),
-      'user_id': supabase.auth.currentUser?.id,
-    });
+      if (userExists == null) {
+        // Create the user if they don't exist
+        await supabase.from('users').insert({
+          'id': currentUser.id,
+          'email': currentUser.email,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Check if the mobile number already exists
+      final existingCustomer =
+          await supabase
+              .from('customers')
+              .select('id')
+              .eq('mobile', userContact)
+              .maybeSingle();
+
+      if (existingCustomer != null) {
+        throw Exception('A customer with this mobile number already exists');
+      }
+
+      // Now add the customer
+      await supabase.from('customers').insert({
+        'name': userName,
+        'email': '',
+        'mobile': userContact,
+        'address': '',
+        'created_at': DateTime.now().toIso8601String(),
+        'user_id': currentUser.id,
+      });
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        // Unique constraint violation
+        throw Exception('A customer with this mobile number already exists');
+      }
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to add customer: ${e.toString()}');
+    }
   }
 
   static Future<List<Map<String, dynamic>>> fetchAllCustomers() async {
     final supabase = Supabase.instance.client;
 
-    final customers = await supabase.from('customers').select();
+    // Check if user is authenticated
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
+    }
 
-    return customers.map((customer) {
-      return {
-        'id': customer['id'],
-        'name': customer['name'],
-        'email': customer['email'],
-        'contact': customer['mobile'],
-        'address': customer['address'],
-        'createdAt': customer['created_at'],
-      };
-    }).toList();
+    try {
+      final customers = await supabase
+          .from('customers')
+          .select()
+          .eq('user_id', currentUser.id)
+          .order('created_at', ascending: false);
+
+      return customers.map((customer) {
+        return {
+          'id': customer['id'],
+          'name': customer['name'],
+          'email': customer['email'],
+          'contact': customer['mobile'],
+          'address': customer['address'],
+          'createdAt': customer['created_at'],
+        };
+      }).toList();
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to fetch customers: ${e.toString()}');
+    }
   }
 }
 
@@ -65,6 +114,10 @@ class AddCustomerBloc {
   }
 
   Future<List<Map<String, dynamic>>> fetchAllCustomers() async {
-    return await AddCustomerService.fetchAllCustomers();
+    try {
+      return await AddCustomerService.fetchAllCustomers();
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 }
