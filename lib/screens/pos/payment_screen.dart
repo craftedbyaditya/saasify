@@ -37,13 +37,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _showCustomerList = false;
   String? _selectedCustomerId;
 
-  final List<String> _paymentOptions = [
-    'Paid - Cash',
-    'Paid - UPI',
-    'Pay Later',
-    'Partial Payment',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -138,6 +131,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               _selectedPaymentOption == 'Partial Payment'
                   ? _paidAmount
                   : widget.orderSummary['total'],
+          subtotalAmount: widget.orderSummary['subtotal'],
+          discountAmount: widget.orderSummary['discountAmount'],
+          discountPercent: widget.orderSummary['discountPercent'],
         );
 
         if (await file.exists()) {
@@ -339,7 +335,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                         ),
                         Text(
-                          '₹${widget.orderSummary['subtotal'].toStringAsFixed(2)}',
+                          '${widget.orderSummary['subtotal'].toStringAsFixed(2)}',
                           style: const TextStyle(fontSize: 15),
                         ),
                       ],
@@ -356,7 +352,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                         ),
                         Text(
-                          '-₹${widget.orderSummary['discountAmount'].toStringAsFixed(2)}',
+                          '${widget.orderSummary['discountAmount'].toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 15,
                             color: Colors.green,
@@ -384,7 +380,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
                           Text(
-                            '₹${widget.orderSummary['total'].toStringAsFixed(2)}',
+                            '${widget.orderSummary['total'].toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -425,7 +421,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         activeColor: const Color(0xFF006d77),
                       ),
                       const Text('Paid - Cash'),
-                      const SizedBox(width: 24),
                       Radio<String>(
                         value: 'Paid - UPI',
                         groupValue: _selectedPaymentOption,
@@ -511,7 +506,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         style: TextStyle(fontSize: 15, color: Colors.grey[600]),
                       ),
                       Text(
-                        '₹${_balanceAmount.toStringAsFixed(2)}',
+                        _balanceAmount.toStringAsFixed(2),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
