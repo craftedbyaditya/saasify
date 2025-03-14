@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:saasify_lite/screens/customers/add_customer_screen.dart';
 import 'package:saasify_lite/screens/inventory/add_new_item.dart';
 import 'package:saasify_lite/screens/orders/order_history_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';

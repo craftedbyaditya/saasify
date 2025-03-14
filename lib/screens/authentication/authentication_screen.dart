@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:saasify_lite/constants/dimensions.dart';
-import 'package:saasify_lite/widgets/custom_appbar.dart';
 import 'package:saasify_lite/widgets/custom_button.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 
@@ -46,7 +45,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.sizeOf(context).height * 0.05,),
+                    SizedBox(height: MediaQuery.sizeOf(context).height * 0.05),
                     Text(
                       widget.isSignUp ? 'Create Account' : 'Welcome Back',
                       style: const TextStyle(
