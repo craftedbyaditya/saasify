@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:saasify_lite/bloc/orderHistory/order_history.dart';
 import 'package:saasify_lite/screens/customers/add_customer_screen.dart';
+import 'package:saasify_lite/widgets/custom_appbar.dart';
 import '../../constants/dimensions.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../bloc/customer/customer_bloc.dart';
 
 class AllCustomersScreen extends StatefulWidget {
-  const AllCustomersScreen({super.key});
+  final bool? onlyPendingCustomers;
+
+  const AllCustomersScreen({super.key, this.onlyPendingCustomers = false});
 
   @override
   State<AllCustomersScreen> createState() => _AllCustomersScreenState();
@@ -15,6 +19,8 @@ class AllCustomersScreen extends StatefulWidget {
 class _AllCustomersScreenState extends State<AllCustomersScreen> {
   final TextEditingController _searchController = TextEditingController();
   final AddCustomerBloc _customerBloc = AddCustomerBloc();
+  final OrderService _orderService = OrderService();
+  List<Map<String, dynamic>> _orders = [];
   final _currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
   List<Map<String, dynamic>> _customers = [];
   List<Map<String, dynamic>> _allCustomers = [];
@@ -24,11 +30,33 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   void initState() {
     super.initState();
     _loadCustomers();
+    if (widget.onlyPendingCustomers!) {
+      _loadOrders();
+    }
+  }
+
+  Future<void> _loadOrders() async {
+    try {
+      final orders = await _orderService.loadOrders();
+      setState(() {
+        _orders = orders;
+        _isLoading = false;
+      });
+      print('orders - $orders');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Error loading orders')));
+      }
+    }
   }
 
   Future<void> _loadCustomers() async {
     try {
       final customers = await _customerBloc.fetchAllCustomers();
+      print('customers - $customers');
       setState(() {
         _customers = customers;
         _allCustomers = customers;
@@ -66,19 +94,14 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
+      appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'All Customers',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
-        ),
+        title: 'All Customers',
         actions: [
-          TextButton(
+          (widget.onlyPendingCustomers!) ?  TextButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -88,7 +111,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
               );
             },
             child: const Text(' + Add new customer'),
-          ),
+          ):SizedBox(),
         ],
       ),
       body: Column(
@@ -113,7 +136,35 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                       padding: const EdgeInsets.all(AppDimensions.paddingLarge),
                       itemBuilder: (context, index) {
                         final customer = _customers[index];
+                        final customerId = customer['id'];
+                        double totalBalanceAmount = 0;
+                        // Calculate pending amount
+                        if (widget.onlyPendingCustomers!) {
+                          final customerOrders =
+                              _orders
+                                  .where(
+                                    (order) =>
+                                        order['customer_id'] == customerId,
+                                  )
+                                  .toList();
+
+                          totalBalanceAmount = customerOrders.fold(
+                            0,
+                            (sum, order) =>
+                                sum +
+                                ((order['payment_status']
+                                            ?.toString()
+                                            .toLowerCase() !=
+                                        'paid')
+                                    ? (order['balance_amount'] as num?)
+                                            ?.toDouble() ??
+                                        0
+                                    : 0),
+                          );
+                        }
+
                         return Card(
+                          color: Colors.white,
                           elevation: 0,
                           margin: const EdgeInsets.only(bottom: 12),
                           shape: RoundedRectangleBorder(
@@ -141,13 +192,26 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                                   const SizedBox(height: 2),
                                   Text(customer['email']),
                                 ],
+                                if (widget.onlyPendingCustomers! &&
+                                    totalBalanceAmount > 0) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Pending: ${_currencyFormat.format(totalBalanceAmount)}',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              onPressed: () {
-                                // TODO: Navigate to edit customer screen
-                              },
+                              icon: const Icon(
+                                Icons.sms,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              onPressed: () {},
                             ),
                           ),
                         );

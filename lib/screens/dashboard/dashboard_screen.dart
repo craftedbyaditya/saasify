@@ -198,7 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       : '₹${_stats?.pendingAmount.toStringAsFixed(2) ?? '0.00'}',
                                   Icons.pending_actions_rounded,
                                   const Color(0xFF2a9d8f),
-                                  {'screen': ''},
+                                  {'screen': const AllCustomersScreen(onlyPendingCustomers: true)},
                                 ),
                               ),
                               const SizedBox(width: 16),
