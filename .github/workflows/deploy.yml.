@@ -3,11 +3,13 @@ name: Deploy Saasify Production
 on:
   push:
     branches:
-      - main  # Change if your main branch is different
-  workflow_dispatch:  # Allows manual triggering from GitHub Actions
+      - main
+  pull_request:
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: write  # Required to push to gh-pages branch
+  contents: write
 
 jobs:
   build-and-deploy:
