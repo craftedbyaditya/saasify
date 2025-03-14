@@ -224,10 +224,12 @@ class BillPdfGenerator {
       ),
     );
 
-    if (kIsWeb) {
-      final bytes = await pdf.save();
-      await _showSuccessDialog(context, () async {
-        final blob = html.Blob([bytes], 'application/pdf');
+    try {
+      final pdfBytes = await pdf.save();
+
+      if (kIsWeb) {
+        // Web platform handling
+        final blob = html.Blob([pdfBytes], 'application/pdf');
         final url = html.Url.createObjectUrlFromBlob(blob);
         final anchor =
             html.document.createElement('a') as html.AnchorElement
@@ -238,17 +240,48 @@ class BillPdfGenerator {
         anchor.click();
         html.document.body?.children.remove(anchor);
         html.Url.revokeObjectUrl(url);
-      });
-    } else {
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/invoice_$invoiceNumber.pdf');
-      await file.writeAsBytes(await pdf.save());
 
-      await _showSuccessDialog(context, () async {
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], subject: 'Invoice for $customerName');
-      });
+        // Show success dialog with clean UI
+        await showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.grey.shade200),
+                ),
+                backgroundColor: Colors.white,
+                title: Text('Success'),
+                content: Text('Invoice has been downloaded successfully.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      } else {
+        // Mobile platform handling
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/invoice_$invoiceNumber.pdf';
+        final file = File(filePath);
+        await file.writeAsBytes(pdfBytes);
+        await Share.shareFiles([filePath], text: 'Invoice $invoiceNumber');
+      }
+    } catch (e) {
+      // Show error in a clean, minimal style
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating PDF: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(16),
+        ),
+      );
     }
   }
 
