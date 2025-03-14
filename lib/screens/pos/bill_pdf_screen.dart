@@ -265,6 +265,7 @@ class BillPdfGenerator {
             borderRadius: BorderRadius.circular(16),
           ),
           backgroundColor: Colors.white,
+          elevation: 0,
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -276,90 +277,92 @@ class BillPdfGenerator {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: Colors.green.shade500,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade200, width: 1),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.check_rounded,
-                      color: Colors.green.shade600,
-                      size: 40,
+                      color: Colors.white,
+                      size: 32,
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Invoice Generated Successfully!',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Your invoice is ready to be shared',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    height: 1.4,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
                         ),
-                        child: Text(
-                          'Close',
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 15,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                      ),
+                      child: Text(
+                        'Close',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                    TextButton.icon(
+                      onPressed: () {
+                        onShare();
+                        Navigator.of(context).pop();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
                       ),
-                      child: TextButton.icon(
-                        onPressed: () {
-                          onShare();
-                          Navigator.of(context).pop();
-                        },
-                        icon: Icon(
-                          Icons.share_rounded,
-                          size: 20,
+                      icon: Icon(
+                        Icons.share_rounded,
+                        size: 18,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      label: Text(
+                        'Share Invoice',
+                        style: TextStyle(
                           color: Theme.of(context).primaryColor,
-                        ),
-                        label: Text(
-                          'Share Invoice',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
