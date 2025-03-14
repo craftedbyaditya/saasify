@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:open_file/open_file.dart';
 import 'package:saasify_lite/bloc/customer/customer_bloc.dart';
 import 'package:saasify_lite/screens/pos/bill_pdf_screen.dart';
 import 'package:saasify_lite/widgets/custom_button.dart';
@@ -121,28 +120,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       if (isInserted) {
         final pdfGenerator = BillPdfGenerator();
-        final file = await pdfGenerator.generateBill(
-          selectedProducts: widget.orderSummary['products'],
-          totalAmount: widget.orderSummary['total'],
-          customerName: _customerNameController.text,
-          customerContact: _mobileNumberController.text,
-          paymentOption: _selectedPaymentOption,
-          paidAmount:
-              _selectedPaymentOption == 'Partial Payment'
-                  ? _paidAmount
-                  : widget.orderSummary['total'],
-          subtotalAmount: widget.orderSummary['subtotal'],
-          discountAmount: widget.orderSummary['discountAmount'],
-          discountPercent: widget.orderSummary['discountPercent'],
-        );
-
-        if (await file.exists()) {
-          await OpenFile.open(file.path);
-          return true;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to generate bill.')),
+        try {
+          await pdfGenerator.generateBill(
+            selectedProducts: widget.orderSummary['products'],
+            totalAmount: widget.orderSummary['total'],
+            customerName: _customerNameController.text,
+            customerContact: _mobileNumberController.text,
+            paymentOption: _selectedPaymentOption,
+            paidAmount:
+                _selectedPaymentOption == 'Partial Payment'
+                    ? _paidAmount
+                    : widget.orderSummary['total'],
+            subtotalAmount: widget.orderSummary['subtotal'],
+            discountAmount: widget.orderSummary['discountAmount'],
+            discountPercent: widget.orderSummary['discountPercent'],
+            context: context,
           );
+          return true; // Return true if PDF generation was successful
+        } catch (e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+          return false;
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -193,37 +192,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   : const SizedBox.shrink(),
               if (_selectedCustomerId != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF006d77).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFF006d77).withOpacity(0.2),
-                    ),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person_outline,
-                        color: Color(0xFF006d77),
+                        color: Theme.of(context).primaryColor,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               _customerNameController.text,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
-                                color: Color(0xFF006d77),
+                                color: Theme.of(context).primaryColor,
                               ),
                             ),
                             Text(
                               _mobileNumberController.text,
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: Colors.grey.shade600,
                                 fontSize: 14,
                               ),
                             ),
@@ -231,7 +228,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Color(0xFF006d77)),
+                        icon: Icon(
+                          Icons.close,
+                          color: Theme.of(context).primaryColor,
+                        ),
                         onPressed: () {
                           setState(() {
                             _selectedCustomerId = null;
@@ -251,16 +251,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   constraints: const BoxConstraints(maxHeight: 200),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
+                    border: Border.all(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Scrollbar(
                     child: ListView.separated(
@@ -272,11 +264,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   ? 4
                                   : _filteredCustomers.length),
                       separatorBuilder:
-                          (context, index) => const Divider(height: 1),
+                          (context, index) =>
+                              Divider(height: 1, color: Colors.grey.shade200),
                       itemBuilder: (context, index) {
                         final customer = _filteredCustomers[index];
                         return ListTile(
-                          leading: const Icon(Icons.person_outline),
+                          leading: Icon(
+                            Icons.person_outline,
+                            color: Theme.of(context).primaryColor,
+                          ),
                           title: Text(
                             customer['name'],
                             style: const TextStyle(fontWeight: FontWeight.w500),
@@ -290,7 +286,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               _selectedCustomerId = customer['id'];
                               _showCustomerList = false;
                               _searchController.clear();
-                              // Unfocus the search field and hide keyboard
                               _searchFocusNode.unfocus();
                             });
                           },

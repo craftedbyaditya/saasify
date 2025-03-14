@@ -57,7 +57,7 @@ class AddCustomerService {
       if (e is PostgrestException) {
         throw Exception('Database error occurred. Please try again.');
       }
-      throw e; // Re-throw the original exception if it's our custom one
+      rethrow; // Re-throw the original exception if it's our custom one
     }
   }
 

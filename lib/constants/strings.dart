@@ -1,5 +1,5 @@
 class AppStrings {
-  static const String appName = 'Inventory Management';
+  static const String appName = 'Saasify';
   static const String homeTitle = 'Home';
   static const String inventoryTitle = 'Inventory';
   static const String addItem = 'Add Item';

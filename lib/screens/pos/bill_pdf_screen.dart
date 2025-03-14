@@ -1,11 +1,16 @@
 import 'dart:io';
+import 'dart:html' as html;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_html/html.dart' as universal_html;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 class BillPdfGenerator {
-  Future<File> generateBill({
+  Future<void> generateBill({
     required List<Map<String, dynamic>> selectedProducts,
     required double totalAmount,
     required String customerName,
@@ -15,6 +20,7 @@ class BillPdfGenerator {
     required double subtotalAmount,
     required double discountAmount,
     required double discountPercent,
+    required BuildContext context,
   }) async {
     final pdf = pw.Document();
     final now = DateTime.now();
@@ -218,11 +224,153 @@ class BillPdfGenerator {
       ),
     );
 
-    final outputDir = await getApplicationDocumentsDirectory();
-    final file = File('${outputDir.path}/$customerName-Invoice.pdf');
+    if (kIsWeb) {
+      final bytes = await pdf.save();
+      await _showSuccessDialog(context, () async {
+        final blob = html.Blob([bytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor =
+            html.document.createElement('a') as html.AnchorElement
+              ..href = url
+              ..style.display = 'none'
+              ..download = 'invoice_$invoiceNumber.pdf';
+        html.document.body?.children.add(anchor);
+        anchor.click();
+        html.document.body?.children.remove(anchor);
+        html.Url.revokeObjectUrl(url);
+      });
+    } else {
+      final output = await getTemporaryDirectory();
+      final file = File('${output.path}/invoice_$invoiceNumber.pdf');
+      await file.writeAsBytes(await pdf.save());
 
-    await file.writeAsBytes(await pdf.save());
-    return file;
+      await _showSuccessDialog(context, () async {
+        await Share.shareXFiles([
+          XFile(file.path),
+        ], subject: 'Invoice for $customerName');
+      });
+    }
+  }
+
+  Future<void> _showSuccessDialog(
+    BuildContext context,
+    VoidCallback onShare,
+  ) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200, width: 1),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.green.shade600,
+                      size: 40,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Invoice Generated Successfully!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your invoice is ready to be shared',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextButton.icon(
+                        onPressed: () {
+                          onShare();
+                          Navigator.of(context).pop();
+                        },
+                        icon: Icon(
+                          Icons.share_rounded,
+                          size: 20,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        label: Text(
+                          'Share Invoice',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<Map<String, String>> _getBusinessDetails() async {
