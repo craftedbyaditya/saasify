@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../bloc/inventory/add_item_bloc.dart';
 import '../../constants/dimensions.dart';
+import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_textfield.dart';
 
 class AddNewItemScreen extends StatefulWidget {
@@ -157,21 +158,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'Add New Item',
-          style: TextStyle(
-            color: Color(0xFF006d77),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF006d77)),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: CustomAppBar(title: 'Add Item'),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

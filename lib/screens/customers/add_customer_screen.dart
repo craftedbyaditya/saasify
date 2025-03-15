@@ -3,6 +3,8 @@ import 'package:saasify_lite/bloc/customer/customer_bloc.dart';
 import 'package:saasify_lite/widgets/custom_textfield.dart';
 import 'package:saasify_lite/constants/dimensions.dart';
 
+import '../../widgets/custom_appbar.dart';
+
 class AddCustomerScreen extends StatefulWidget {
   const AddCustomerScreen({super.key});
 
@@ -148,21 +150,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'Add Customer',
-          style: TextStyle(
-            color: Color(0xFF006d77),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF006d77)),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: CustomAppBar(title: 'Add Customer'),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

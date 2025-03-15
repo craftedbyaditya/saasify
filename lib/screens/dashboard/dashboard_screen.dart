@@ -6,6 +6,7 @@ import 'package:saasify_lite/screens/customers/all_customers_screen.dart';
 import 'package:saasify_lite/screens/profile/profile_screen.dart';
 import '../../bloc/dashboard/dashboard_bloc.dart';
 import '../../constants/dimensions.dart';
+import '../customers/add_customer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -68,13 +69,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'screen': AddNewItemScreen(),
       'color': const Color(0xFF83c5be),
     },
-    // {
-    //   'icon': Icons.people_alt_rounded,
-    //   'text': 'Add Customer',
-    //   'description': 'Add a new customer',
-    //   'screen': AddCustomerScreen(),
-    //   'color': const Color(0xFFe29578),
-    // },
+    {
+      'icon': Icons.people_alt_rounded,
+      'text': 'Add Customer',
+      'description': 'Add a new customer',
+      'screen': AddCustomerScreen(),
+      'color': const Color(0xFFe29578),
+    },
     // {
     //   'icon': Icons.history_rounded,
     //   'text': 'Order History',
