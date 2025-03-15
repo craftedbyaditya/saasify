@@ -516,14 +516,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
               CustomElevatedButton(
                 text: 'Generate Bill',
                 onTap: () async {
-                  if (_selectedCustomerId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please select a customer first'),
-                      ),
-                    );
-                    return;
-                  }
+                  // if (_selectedCustomerId == null) {
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     const SnackBar(
+                  //       content: Text('Please select a customer first'),
+                  //     ),
+                  //   );
+                  //   return;
+                  // }
 
                   if (_selectedPaymentOption == 'Partial Payment' &&
                       (_paidAmount <= 0 ||
