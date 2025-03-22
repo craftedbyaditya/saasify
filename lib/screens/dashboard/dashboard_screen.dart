@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:saasify_lite/screens/inventory/add_new_item.dart';
+import 'package:saasify_lite/screens/inventory/all_items_screen.dart';
 import 'package:saasify_lite/screens/orders/order_history_screen.dart';
 import 'package:saasify_lite/screens/pos/pos_screen.dart';
 import 'package:saasify_lite/screens/customers/all_customers_screen.dart';
@@ -67,6 +68,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'text': 'Add New Item',
       'description': 'Add new items to inventory',
       'screen': AddNewItemScreen(),
+      'color': const Color(0xFF83c5be),
+    },
+    {
+      'icon': Icons.add_box_rounded,
+      'text': 'All Items',
+      'description': 'Manage items in inventory',
+      'screen': AllItemsScreen(),
       'color': const Color(0xFF83c5be),
     },
     {
@@ -205,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildStatCard(
-                                  'Total Customers',
+                                  'All Customers',
                                   _isLoading
                                       ? '...'
                                       : '${_stats?.totalCustomers ?? 0}',
@@ -287,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               tile['description'],
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 10,
                                 color: Colors.grey[600],
                               ),
                             ),

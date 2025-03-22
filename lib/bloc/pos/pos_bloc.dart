@@ -18,9 +18,10 @@ class PosBloc {
           .select()
           .eq('user_id', user.id) // Filter by logged-in user
           .order('created_at', ascending: false); // Optional: Sort by latest
-
+      print('response $response');
       return response.map((product) {
         return {
+          'id': product['id'] ?? '',
           'name': product['name'] ?? '',
           'description': product['description'] ?? '',
           'amount': product['price'] ?? 0.0,

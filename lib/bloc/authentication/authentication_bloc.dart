@@ -24,13 +24,22 @@ class AuthenticationBloc {
 
     try {
       if (isSignUp) {
+        // 1. Sign up the user with Supabase Auth
         final response = await _supabase.auth.signUp(
           email: email.trim(),
           password: password.trim(),
-          data: {'username': usernameController?.text.trim()},
         );
 
         if (response.user != null) {
+          // 2. Create user record in the users table
+          await _supabase.from('users').insert({
+            'id': response.user!.id, // Use the auth user's UUID
+            'name': usernameController?.text.trim(),
+            'email': email.trim(),
+            'created_at': DateTime.now().toIso8601String(),
+          });
+
+          // 3. Save login details and navigate
           await CacheService().saveLoginDetails(
             email: email.trim(),
             password: password.trim(),
@@ -51,11 +60,16 @@ class AuthenticationBloc {
           Navigator.pushReplacementNamed(context, '/dashboard');
         }
       }
+    } on PostgrestException catch (e) {
+      print('❗ Database Error: ${e.message}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating account: ${e.message}')),
+      );
     } catch (e) {
       print('❗ Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,10 @@ import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_textfield.dart';
 
 class AddNewItemScreen extends StatefulWidget {
-  const AddNewItemScreen({super.key});
+  final bool? isEdit;
+  final Map? productDetails;
+
+  const AddNewItemScreen({super.key, this.isEdit = false, this.productDetails});
 
   @override
   State<AddNewItemScreen> createState() => _AddNewItemScreenState();
@@ -20,13 +23,11 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
 
   bool _isLoading = false;
   bool _isValid = false;
-  String? _nameError;
-  String? _descriptionError;
-  String? _priceError;
 
   @override
   void initState() {
     super.initState();
+    _prepopulateFields();
     _productNameController.addListener(_validateFields);
     _descriptionController.addListener(_validateFields);
     _priceController.addListener(_validateFields);
@@ -38,6 +39,15 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     super.dispose();
+  }
+
+  _prepopulateFields() {
+    if (widget.isEdit!) {
+      _productNameController.text = widget.productDetails!['productName'];
+      _descriptionController.text =
+          widget.productDetails!['productDescription'];
+      _priceController.text = widget.productDetails!['productPrice'];
+    }
   }
 
   void _validateFields() {
@@ -56,32 +66,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
 
   bool _validateInputs() {
     bool isValid = true;
-    setState(() {
-      _nameError = null;
-      _descriptionError = null;
-      _priceError = null;
-
-      if (_productNameController.text.trim().isEmpty) {
-        _nameError = 'Product name is required';
-        isValid = false;
-      }
-
-      if (_descriptionController.text.trim().isEmpty) {
-        _descriptionError = 'Description is required';
-        isValid = false;
-      }
-
-      if (_priceController.text.trim().isEmpty) {
-        _priceError = 'Price is required';
-        isValid = false;
-      } else {
-        final price = double.tryParse(_priceController.text.trim());
-        if (price == null || price <= 0) {
-          _priceError = 'Enter a valid price';
-          isValid = false;
-        }
-      }
-    });
+    setState(() {});
     return isValid;
   }
 
@@ -95,10 +80,14 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
         productName: _productNameController.text.trim(),
         description: _descriptionController.text.trim(),
         price: _priceController.text.trim(),
+        isEdit: widget.isEdit,
+        productId: widget.productDetails?['productId'],
       );
       _showSuccessDialog();
     } catch (e) {
-      _showErrorDialog('Failed to add item. Please try again.');
+      _showErrorDialog(
+        'Failed to ${widget.isEdit! ? 'update' : 'add'} item. Please try again.',
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -158,7 +147,9 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(title: 'Add Item'),
+      appBar: CustomAppBar(
+        title: (widget.isEdit!) ? 'Update Item' : 'Add Item',
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -202,15 +193,13 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                           controller: _productNameController,
                           label: 'Product Name',
                           prefixIcon: const Icon(Icons.inventory_2_outlined),
-                          onChanged: (_) => setState(() => _nameError = null),
                         ),
                         const SizedBox(height: AppDimensions.paddingLarge),
                         CustomTextField(
                           controller: _descriptionController,
                           label: 'Description',
                           prefixIcon: const Icon(Icons.description_outlined),
-                          onChanged:
-                              (_) => setState(() => _descriptionError = null),
+
                           maxLines: 3,
                         ),
                         const SizedBox(height: AppDimensions.paddingLarge),
@@ -251,8 +240,8 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                                   ),
                                 ),
                               )
-                              : const Text(
-                                'Add Item',
+                              : Text(
+                                (widget.isEdit!) ? 'Update Item' : 'Add Item',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
